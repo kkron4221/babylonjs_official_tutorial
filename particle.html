@@ -39,6 +39,30 @@
         camera.attachControl(canvas, true);
         const light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0));
 
+        let switched = false; // on off flag
+        const pointerDown = (mesh) => {
+          if (mesh === fountain) {
+            // check that the picked mesh is the fountain
+            switched = !switched;
+            if(switched) {
+              particleSystem.start();
+            }
+            else {
+              particleSystem.stop();
+            }
+          }
+        }
+
+        scene.onPointerObservable.add((pointerInfo) => {
+          switch (pointerInfo.type) {
+            case BABYLON.PointerEventTypes.POINTERDOWN:
+              if(pointerInfo.pickInfo.hit) {
+                pointerDown(pointerInfo.pickInfo.pickedMesh)
+              }
+              break;
+          }
+        })
+
         const fountainProfile = [
             new BABYLON.Vector3(0, 0, 0),
             new BABYLON.Vector3(10, 0, 0),
@@ -52,7 +76,7 @@
 
         // Create lathe
         const fountain = BABYLON.MeshBuilder.CreateLathe("fountain", {shape: fountainProfile, sideOrientation: BABYLON.Mesh.DOUBLESIDE}, scene);
-        fountain.position.y = -5;
+        fountain.position.y = -6;
 
         // Create a particle system
         var particleSystem = new BABYLON.ParticleSystem("particles", 5000, scene);
@@ -100,8 +124,9 @@
         particleSystem.maxEmitPower = 3;
         particleSystem.updateSpeed = 0.025;
 
-        // Start the particle system
-        particleSystem.start();
+
+
+
 
         return scene;
         }
