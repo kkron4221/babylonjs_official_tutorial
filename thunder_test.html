@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Babylon Template</title>
+  <style>
+    html, body {
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #renderCanvas {
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+  </style>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+</head>
+<body>
+  <canvas id="renderCanvas" touch-action="none"></canvas>
+  <script>
+    const canvas = document.getElementById("renderCanvas");
+    const engine = new BABYLON.Engine(canvas, true);
+
+    function createScene() {
+      const scene = new BABYLON.Scene(engine);
+
+      // カメラを作成します。
+      const camera = new BABYLON.ArcRotateCamera("camera", 0, 0, 5, BABYLON.Vector3.Zero(), scene);
+      camera.attachControl(canvas, true);
+
+      // ライトを作成します。
+      const light = new BABYLON.PointLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+      // 地面を作成します。
+      const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
+
+      // 雷のパーティクルシステムを作成します。
+      const particleSystem = new BABYLON.ParticleSystem("lightningParticles", 1000, scene);
+      particleSystem.particleTexture = new BABYLON.Texture("textures/lightning_particle.png", scene); // パーティクルのテクスチャ（適切なパスを指定してください）
+      particleSystem.emitter = new BABYLON.Vector3(0, 3, 0); // パーティクルの発生元位置
+      particleSystem.minSize = 0.1; // パーティクルの最小サイズ
+      particleSystem.maxSize = 0.5; // パーティクルの最大サイズ
+      particleSystem.color1 = new BABYLON.Color4(1.0, 1.0, 1.0, 1.0); // パーティクルの色
+      particleSystem.minEmitPower = 0.1; // パーティクルの最小発生力
+      particleSystem.maxEmitPower = 0.5; // パーティクルの最大発生力
+      particleSystem.emitRate = 500; // パーティクルの発生率
+      particleSystem.minLifeTime = 0.1; // パーティクルの最小寿命
+      particleSystem.maxLifeTime = 0.5; // パーティクルの最大寿命
+      particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+      particleSystem.gravity = new BABYLON.Vector3(0, -1, 0); // パーティクルに重力を設定
+      particleSystem.direction1 = new BABYLON.Vector3(-1, -1, -1); // パーティクルの方向1
+      particleSystem.direction2 = new BABYLON.Vector3(1, -1, 1); // パーティクルの方向2
+      particleSystem.start();
+
+      return scene;
+    }
+
+    const scene = createScene();
+
+    engine.runRenderLoop(function () {
+      scene.render();
+    });
+
+    window.addEventListener("resize", function () {
+      engine.resize();
+    });
+  </script>
+</body>
+</html>
