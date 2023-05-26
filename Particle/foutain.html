@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+        var scene = new BABYLON.Scene(engine);
+
+        // Setup environment
+        var camera = new BABYLON.ArcRotateCamera("ArcRotateCamera", 1, 0.8, 20, new BABYLON.Vector3(0, 0, 0), scene);
+        camera.attachControl(canvas, true);
+        camera.wheelPrecision = 100;
+
+        var fountain = BABYLON.Mesh.CreateBox("fountain", 0.1, scene);
+        fountain.visibility = 0.1;
+
+        // Create a particle system
+        var particleSystem;
+        var useGPUVersion = true;
+
+        var createNewSystem = function() {
+            if (particleSystem) {
+                particleSystem.dispose();
+            }
+
+            if (useGPUVersion && BABYLON.GPUParticleSystem.IsSupported) {
+                particleSystem = new BABYLON.GPUParticleSystem("particles", { capacity: 1000000}, scene);
+                particleSystem.activeParticleCount = 200000;
+            } 
+            else {
+                particleSystem = new BABYLON.particleSystem("particles", 50000, scene);
+            }
+
+            var customEmitter = new BABYLON.CustomParticleEmitter();
+
+            let id = 0;
+            
+            customEmitter.particlePositionGenerator = (index, particle, out) => {
+                out.x = Math.cos(id) * 5;
+                out.y = Math.sin(id) * 5;
+                out.z = 0;
+                id += 0.01;
+            }
+
+            customEmitter.particleDestinationGenerator = (index, particle, out) => {
+                out.x = 0;
+                out.y = 0;
+                out.z = 0;
+            }
+
+            particleSystem.emitRate = 10000;
+            particleSystem.particleEmitterType = customEmitter;
+            particleSystem.particleTexture = new BABYLON.Texture("textures/flare.png");
+            particleSystem.maxLifeTime = 10;
+            particleSystem.minSize = 0.01;
+            particleSystem.maxSize = 0.1;
+            particleSystem.emitter = fountain;
+
+            particleSystem.start();
+        }
+
+        createNewSystem();
+
+        var alpha = 0;
+        var moveEmitter = false;
+        var rotateEmitter = false;
+
+        scene.registerBeforeRender(function() {
+            if (moveEmitter) {
+                fountain.position.x = 5 * Math.cos(alpha);
+                fountain.position.z = 5 * Math.sin(alpha);
+            }
+
+            if (rotateEmitter) {
+                fountain.rotation.x += 0.01;
+            }
+
+            alpha += 0.01;
+        });
+
+        return scene;
+
+        
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
