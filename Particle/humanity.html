@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle Frame</title>
+    <style>
+      html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <script src="https://unpkg.com/earcut@latest/dist/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  </head>
+  <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+
+      BABYLON.Engine.audioEngineEnabled = true;
+
+      const engine = new BABYLON.Engine(canvas, true, null, true);
+
+    function createScene() {
+
+        const scene = new BABYLON.Scene(engine);
+
+        const camera = new BABYLON.ArcRotateCamera("ArcRotate", -Math.PI / 2, Math.PI / 2.2, 10, new BABYLON.Vector3(0, 0, 0), scene);
+        camera.attachControl(canvas, true);
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
+
+        var playerModel;
+
+        BABYLON.SceneLoader.ImportMesh("", "path_to_player_model_folder/", "player_model_file.gltf", scene, function(meshes){
+          playerModel = meshes[0];
+          playerModel.position = new BABYLON.Vector3(0, 0, 0);
+          playerModel.scaling = new BABYLON.Vector3(1, 1, 1);
+
+          var directionIcon = BABYLON.MeshBuilder.CreatePlane("directionIcon", { size: 1}, scene);
+          directionIcon.position = playerModel.position.add(new BABYLON.Vector3(0, 2, 0));
+          directionIcon.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+        });
+
+        var moveSpeed = 0.1;
+
+        scene.registerBeforeRender(function(){
+          playerModel.position.addInPlace(playerModel.forward.scale(moveSpeed));
+        });
+
+        function updateDirectionIcon(direction){
+          directionIcon.rotation.y = direction;
+        }
+
+        var directionInput = {
+          up: false,
+          down: false,
+          left: false,
+          right: false
+        };
+
+        document.addEventListener("keydown", function(event){
+          switch(event.key){
+            
+          }
+        })
+
+        // Ground for positional reference
+        const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 25, height: 25}, scene);
+        const groundMaterial = new BABYLON.StandardMaterial("groundMat", scene);
+        ground.material = groundMaterial;
+        ground.material.backFaceCulling = false;
+        ground.position.y = -0.5;
+
+        // Sphere
+        const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {}, scene);
+
+        const particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene, null, true);
+        particleSystem.particleTexture = new BABYLON.Texture("textures/player.png", scene, true, false);
+        particleSystem.startSpriteCellID = 0;
+        particleSystem.endSpriteCellID = 9;
+        particleSystem.spriteCellHeight = 64;
+        particleSystem.spriteCellWidth = 64;
+        particleSystem.spriteCellLoop = true;
+
+        // Emission
+        particleSystem.emitter = sphere; // the starting object, the emitter
+        particleSystem.minEmitBox = new BABYLON.Vector3(-1, 0, -0.3); // Starting all from
+        particleSystem.maxEmitBox = new BABYLON.Vector3(0, 0, 0.3); // To...
+
+        // Size of each particle (random between...
+        particleSystem.minSize = 0.5;
+        particleSystem.maxSize = 0.6;
+
+        // Lifetime of each particle (random between...
+        particleSystem.minLifeTime = 10;
+        particleSystem.maxLifeTime = 10;
+
+        // Emission rate
+        particleSystem.emitRate = 2;
+
+        // Direction of each particle after it has been emitted
+        particleSystem.direction1 = new BABYLON.Vector3(-2, 0, 0);
+        particleSystem.direction2 = new BABYLON.Vector3(-2, 0, 0);
+
+        // Speed -low power, higher speed to match sprite animation
+        particleSystem.minEmitPower = 0.1;
+        particleSystem.maxEmitPower = 0.1;
+        particleSystem.updateSpeed = 0.1;
+
+        // Start the particle system
+        particleSystem.start();
+
+        return scene;
+    };
+
+        const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
